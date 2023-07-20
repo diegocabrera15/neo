@@ -1,0 +1,22 @@
+{
+  "name": "neo",
+  "version": "1.0.0",
+  "description": "Golang project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diegocabrera15/neo.git"
+  },
+  "keywords": [
+    "Go"
+  ],
+  "author": "Fernando Cabrera",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/diegocabrera15/neo/issues"
+  },
+  "homepage": "https://github.com/diegocabrera15/neo#readme"
+}

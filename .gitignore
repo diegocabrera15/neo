@@ -20,3 +20,10 @@ vendor
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# NodeJs directories
+node_modules
+
+# IDE files
+.idea/
+
+.DS_Store
