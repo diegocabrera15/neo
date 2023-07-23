@@ -12,7 +12,41 @@ provider:
   runtime: go1.x
   stage: dev
   environment:
+    REGION: us-east-1
     USER_TABLE: user
+    UNIT_DYNAMODB: ${self:resources.Resources.unit.Properties.TableName}
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:GetItem"
+        - "dynamodb:PutItem"
+        - "dynamodb:UpdateItem"
+        - "dynamodb:DeleteItem"
+      Resource:
+#        - {
+#          "Fn::Join":
+#            [
+#              "",
+#              [
+#                {
+#                  "Fn::Join":
+#                    [ "", [ "arn:aws:dynamodb:", { "Ref": "AWS::Region" }, ":" ] ],
+#                },
+#                { "Ref": "AWS::AccountId" },
+#                ":table/",
+#                "${self:provider.environment.UNIT_DYNAMODB}",
+#              ],
+#            ],
+#        }
+#        - "*"
+        - "arn:aws:dynamodb:${self:provider.environment.REGION}:*:table/${self:provider.environment.UNIT_DYNAMODB}"
+    - Effect: "Allow"
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+      Resource:
+        - "arn:aws:dynamodb:${self:provider.environment.REGION}:*:table/${self:provider.environment.UNIT_DYNAMODB}"
+
   logRetentionInDays: 7
 
 custom:
@@ -30,6 +64,18 @@ functions:
       - http:
           path: ${self:custom.version}/api/user
           method: post
+  createUnit:
+    handler: bin/createUnitHandler
+    events:
+      - http:
+          path: ${self:custom.version}/api/unit
+          method: post
+  readUnit:
+    handler: bin/readUnitHandler
+    events:
+      - http:
+          path: ${self:custom.version}/api/unit/{unitId}
+          method: get
 
 # you can add CloudFormation resource templates here
 resources:
@@ -42,15 +88,15 @@ resources:
         AttributeDefinitions:
           - AttributeName: userId #key or primmary key
             AttributeType: S #Data type
-          - AttributeName: created
-            AttributeType: N
+#          - AttributeName: created
+#            AttributeType: N
           - AttributeName: identification
             AttributeType: S
         KeySchema:
           - AttributeName: userId
             KeyType: HASH
-          - AttributeName: created
-            KeyType: RANGE
+#          - AttributeName: created
+#            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         GlobalSecondaryIndexes:
           - IndexName: identification-index
@@ -62,5 +108,33 @@ resources:
 #        ProvisionedThroughput:
 #          ReadCapacityUnits: 1
 #          WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+    unit:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        TableName: ${self:provider.stage}-${self:service}-unit
+        AttributeDefinitions:
+          - AttributeName: unitId #key or primmary key
+            AttributeType: S #Data type
+          - AttributeName: name
+            AttributeType: S
+#          - AttributeName: unitType
+#            AttributeType: S
+#          - AttributeName: description
+#            AttributeType: S
+#          - AttributeName: state
+#            AttributeType: S
+        KeySchema:
+          - AttributeName: unitId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        GlobalSecondaryIndexes:
+          - IndexName: name-index
+            KeySchema:
+              - AttributeName: name
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
         StreamSpecification:
           StreamViewType: NEW_AND_OLD_IMAGES

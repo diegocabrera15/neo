@@ -5,32 +5,33 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/aws/aws-lambda-go/events"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/go/neo/service"
 	"github.com/go/neo/types"
 )
 
-// Response is of type APIGatewayProxyResponse since we're leveraging the
+// ResponseReadUnit is of type APIGatewayProxyResponse since we're leveraging the
 // AWS Lambda Proxy Request functionality (default behavior)
 //
 // https://serverless.com/framework/docs/providers/aws/events/apigateway/#lambda-proxy-integration
-type Response events.APIGatewayProxyResponse
+type ResponseReadUnit events.APIGatewayProxyResponse
 
-// Handler is our lambda handler invoked by the `lambda.Start` function call
-func Handler(ctx context.Context) (Response, error) {
+// HandlerReadUnit is our lambda handler invoked by the `lambda.Start` function call
+func HandlerReadUnit(ctx context.Context, event events.APIGatewayProxyRequest) (ResponseReadUnit, error) {
+	fmt.Println("Ingresa a HandlerReadUnit")
 	var buf bytes.Buffer
-	fmt.Println("Antes del Archivo")
-	service.CreateUser("Diego")
-	fmt.Println("Después del Archivo")
+
+	service.ReadUnit(ctx, event)
+
 	body, err := json.Marshal(map[string]interface{}{
-		"message": "My first lambda in GO",
+		"message": "Lambda in GO for read units",
 	})
 
 	if err != nil {
 		fmt.Println("Ingresa IF error")
-		resp := Response{
+		resp := ResponseReadUnit{
 			StatusCode: 404,
 			Body: fmt.Sprintf("%+v", types.ErrorResponse{
 				ErrorCode:    001,
@@ -42,7 +43,7 @@ func Handler(ctx context.Context) (Response, error) {
 	}
 	json.HTMLEscape(&buf, body)
 	fmt.Println("Pasa IF ERROR")
-	resp := Response{
+	resp := ResponseReadUnit{
 		StatusCode:      200,
 		IsBase64Encoded: false,
 		Body:            buf.String(),
@@ -56,5 +57,5 @@ func Handler(ctx context.Context) (Response, error) {
 }
 
 func main() {
-	lambda.Start(Handler)
+	lambda.Start(HandlerReadUnit)
 }
