@@ -1,25 +1,89 @@
 package service
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/go/neo/connection"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/go/neo/constants"
 	"github.com/go/neo/types"
-	"net/http"
 )
 
-func ReadUnit(ctx context.Context, event events.APIGatewayProxyRequest) ([]types.UnitDynamodb, error) {
-	fmt.Println("Estamos en la Lectura de unidades")
+func ReadUnit() events.APIGatewayProxyResponse {
+	fmt.Println("[INFO]ReadUnit")
+	var itemArray events.APIGatewayProxyResponse
+	itemArray = ListByUnitIds()
+	fmt.Println("[INFO]Valores itemArray", itemArray)
+	return itemArray
+}
 
-	units, err := connection.ReadUnit(ctx, event)
-	fmt.Println("UNIDADES LEIDAS EN LA TABLA", units)
+func ListByUnitIds() events.APIGatewayProxyResponse {
+	fmt.Println("Ingresa a ListByUnitIds")
+	// Build the Dynamo client object
+	sess := session.Must(session.NewSession())
+	svc := dynamodb.New(sess)
 
-	if units != nil {
-		fmt.Println("dynamoErr1: ", units)
-		fmt.Println("dynamoErr2: ", err)
-		fmt.Println("http: ", http.StatusInternalServerError)
+	// Build the query input parameters
+	params := &dynamodb.ScanInput{
+		TableName: aws.String(constants.TableUnitDynamodb),
 	}
 
-	return units, nil
+	// Scan table
+	result, err := svc.Scan(params)
+
+	// Checking for errors, return error
+	if err != nil {
+		fmt.Println("Query API call failed: ", err.Error())
+		return events.APIGatewayProxyResponse{
+			StatusCode: 500,
+			Body: fmt.Sprintf("%+v", types.ErrorResponse{
+				ErrorCode:    001,
+				ErrorMessage: err.Error(),
+				Timestamp:    "20/07/2023",
+			}),
+		}
+	}
+
+	var itemArray []types.UnitDynamodb
+
+	for _, i := range result.Items {
+		item := types.UnitDynamodb{}
+
+		// result is of type *dynamodb.GetItemOutput
+		// result.Item is of type map[string]*dynamodb.AttributeValue
+		// UnmarshallMap result.item to item
+		err = dynamodbattribute.UnmarshalMap(i, &item)
+
+		if err != nil {
+			fmt.Println("Got error unmarshalling: ", err.Error())
+			return events.APIGatewayProxyResponse{
+				StatusCode: 500,
+				Body: fmt.Sprintf("%+v", types.ErrorResponse{
+					ErrorCode:    001,
+					ErrorMessage: err.Error(),
+					Timestamp:    "20/07/2023",
+				}),
+			}
+		}
+		itemArray = append(itemArray, item)
+	}
+
+	fmt.Println("itemArray: ", itemArray)
+	itemArrayString, err := json.Marshal(itemArray)
+	if err != nil {
+		fmt.Println("Got error marshalling result: ", err.Error())
+		return events.APIGatewayProxyResponse{
+			StatusCode: 500,
+			Body: fmt.Sprintf("%+v", types.ErrorResponse{
+				ErrorCode:    001,
+				ErrorMessage: err.Error(),
+				Timestamp:    "20/07/2023",
+			}),
+		}
+	}
+
+	return events.APIGatewayProxyResponse{Body: string(itemArrayString), StatusCode: 200}
 }

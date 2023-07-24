@@ -2,20 +2,15 @@ package connection
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/go/neo/types"
-	"os"
 )
 
-var TableName = os.Getenv("UNIT_DYNAMODB")
-
 func CreateDynamoSession() *dynamodb.DynamoDB {
+	fmt.Println("[INFO]CreateDynamoSession")
 	sess := session.Must(session.NewSessionWithOptions(
 		session.Options{
 			SharedConfigState: session.SharedConfigEnable,
@@ -26,11 +21,6 @@ func CreateDynamoSession() *dynamodb.DynamoDB {
 
 func ReadUnit(ctx context.Context, event events.APIGatewayProxyRequest) ([]types.UnitDynamodb, error) {
 	fmt.Println("Ingresa a ReadUnit")
-
-	fmt.Println("Path vars: ", event.PathParameters["unitId"])
-	var itemArray events.APIGatewayProxyResponse
-	itemArray, _ = ListByUnitIds(event)
-	fmt.Println("VALORES itemArray EN ReadUnit", itemArray)
 
 	/*if err != nil {
 		panic(fmt.Sprintf("Failed to find Item, %v", err))
@@ -125,52 +115,4 @@ func ListByUnitId(unitId string) ([]types.UnitDynamodb, error) {
 	}*/
 
 	return nil, nil
-}
-
-func ListByUnitIds(event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	fmt.Println("Ingresa a ListByUnitIds")
-	// Build the Dynamo client object
-	sess := session.Must(session.NewSession())
-	svc := dynamodb.New(sess)
-
-	// Build the query input parameters
-	params := &dynamodb.ScanInput{
-		TableName: aws.String(TableName),
-	}
-
-	// Scan table
-	result, err := svc.Scan(params)
-
-	// Checking for errors, return error
-	if err != nil {
-		fmt.Println("Query API call failed: ", err.Error())
-		return events.APIGatewayProxyResponse{StatusCode: 500}, nil
-	}
-
-	var itemArray []types.UnitDynamodb
-
-	for _, i := range result.Items {
-		item := types.UnitDynamodb{}
-
-		// result is of type *dynamodb.GetItemOutput
-		// result.Item is of type map[string]*dynamodb.AttributeValue
-		// UnmarshallMap result.item to item
-		err = dynamodbattribute.UnmarshalMap(i, &item)
-
-		if err != nil {
-			fmt.Println("Got error unmarshalling: ", err.Error())
-			return events.APIGatewayProxyResponse{StatusCode: 500}, nil
-		}
-
-		itemArray = append(itemArray, item)
-	}
-
-	fmt.Println("itemArray: ", itemArray)
-	itemArrayString, err := json.Marshal(itemArray)
-	if err != nil {
-		fmt.Println("Got error marshalling result: ", err.Error())
-		return events.APIGatewayProxyResponse{StatusCode: 500}, nil
-	}
-
-	return events.APIGatewayProxyResponse{Body: string(itemArrayString), StatusCode: 200}, nil
 }

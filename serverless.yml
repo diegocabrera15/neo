@@ -70,7 +70,7 @@ functions:
     handler: bin/readUnitHandler
     events:
       - http:
-          path: ${self:custom.version}/api/unit/{unitId}
+          path: ${self:custom.version}/api/unit
           method: get
 
 # you can add CloudFormation resource templates here

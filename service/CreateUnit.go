@@ -14,12 +14,11 @@ import (
 )
 
 func CreateUnit(event events.APIGatewayProxyRequest) error {
-	fmt.Println("[Info]CreateUnit")
-	var tableName = constants.TableUnitDynamodb
+	fmt.Println("[INFO]CreateUnit")
 	unit := types.UnitDynamodb{}
 	err := json.Unmarshal([]byte(event.Body), &unit)
 	if err != nil {
-		fmt.Println("[Error]Error la estructura de User es incorrecta", err)
+		fmt.Println("[ERROR]Error la estructura de User es incorrecta", err)
 	}
 
 	//if unit.UnitId == "" {
@@ -36,24 +35,24 @@ func CreateUnit(event events.APIGatewayProxyRequest) error {
 
 	unitMap, marshalErr := dynamodbattribute.MarshalMap(item)
 	if marshalErr != nil {
-		fmt.Println("[Error]Failed to marshal to dynamo map")
+		fmt.Println("[ERROR]Failed to marshal to dynamo map")
 		return marshalErr
 	}
 
 	dynamoSession := connection.CreateDynamoSession()
 	input := &dynamodb.PutItemInput{
 		Item:      unitMap,
-		TableName: aws.String(tableName),
+		TableName: aws.String(constants.TableUnitDynamodb),
 	}
 
 	_, writeErr := dynamoSession.PutItem(input)
 	if writeErr != nil {
-		fmt.Println("[Error]Failed to write to dynamo")
-		fmt.Println("[Error]WriteErr Err: ", writeErr.Error())
-		fmt.Println("[Error]writeErr http: ", http.StatusInternalServerError)
+		fmt.Println("[ERROR]Failed to write to dynamo")
+		fmt.Println("[ERROR]WriteErr Err: ", writeErr.Error())
+		fmt.Println("[ERROR]writeErr http: ", http.StatusInternalServerError)
 		return writeErr
 	}
-	fmt.Println("[Info]Unit created successful")
+	fmt.Println("[INFO]Unit created successful")
 
 	return nil
 }

@@ -19,8 +19,8 @@ type ResponseUnit events.APIGatewayProxyResponse
 
 // HandlerCreateUnit is our lambda handler invoked by the `lambda.Start` function call
 func HandlerCreateUnit(event events.APIGatewayProxyRequest) (ResponseUnit, error) {
-	fmt.Println("[Info]HandlerCreateUnit init")
-	fmt.Println("[Info]Event: ", event.Body)
+	fmt.Println("[INFO]HandlerCreateUnit init")
+	fmt.Println("[INFO]Event: ", event.Body)
 	var buf bytes.Buffer
 	err := service.CreateUnit(event)
 
