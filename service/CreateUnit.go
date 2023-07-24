@@ -8,45 +8,52 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/go/neo/connection"
+	"github.com/go/neo/constants"
 	"github.com/go/neo/types"
 	"net/http"
-	"os"
 )
 
 func CreateUnit(event events.APIGatewayProxyRequest) error {
-	fmt.Println("Estamos en la creación Unidades")
-	fmt.Println("Body: ", event.Body)
-
-	unit := event.Body
+	fmt.Println("[Info]CreateUnit")
+	var tableName = constants.TableUnitDynamodb
 	unit := types.UnitDynamodb{}
 	err := json.Unmarshal([]byte(event.Body), &unit)
-
-	fmt.Println("Valores de ERR", err)
 	if err != nil {
-		fmt.Println("Error la estructura de User es incorrecta")
+		fmt.Println("[Error]Error la estructura de User es incorrecta", err)
 	}
 
-	var TableName = os.Getenv("UNIT_DYNAMODB")
+	//if unit.UnitId == "" {
+	//	return events.APIGatewayProxyResponse{StatusCode: 400}, nil
+	//}
 
-	unitMap, marshalErr := dynamodbattribute.MarshalMap(unit)
+	item := types.UnitDynamodb{
+		UnitId:      unit.UnitId,
+		Name:        unit.Name,
+		Unit:        unit.Unit,
+		Description: unit.Description,
+		State:       unit.State,
+	}
+
+	unitMap, marshalErr := dynamodbattribute.MarshalMap(item)
 	if marshalErr != nil {
-		fmt.Println("Failed to marshal to dynamo map")
+		fmt.Println("[Error]Failed to marshal to dynamo map")
 		return marshalErr
 	}
 
 	dynamoSession := connection.CreateDynamoSession()
 	input := &dynamodb.PutItemInput{
 		Item:      unitMap,
-		TableName: aws.String(TableName),
+		TableName: aws.String(tableName),
 	}
 
 	_, writeErr := dynamoSession.PutItem(input)
 	if writeErr != nil {
-		fmt.Println("Failed to write to dynamo")
-		fmt.Println("writeErr Err: ", writeErr.Error())
-		fmt.Println("writeErr http: ", http.StatusInternalServerError)
+		fmt.Println("[Error]Failed to write to dynamo")
+		fmt.Println("[Error]WriteErr Err: ", writeErr.Error())
+		fmt.Println("[Error]writeErr http: ", http.StatusInternalServerError)
 		return writeErr
 	}
+	fmt.Println("[Info]Unit created successful")
 
 	return nil
 }

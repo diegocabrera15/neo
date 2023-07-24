@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 
@@ -19,29 +18,29 @@ import (
 type ResponseUnit events.APIGatewayProxyResponse
 
 // HandlerCreateUnit is our lambda handler invoked by the `lambda.Start` function call
-func HandlerCreateUnit(ctx context.Context, event events.APIGatewayProxyRequest) (ResponseUnit, error) {
+func HandlerCreateUnit(event events.APIGatewayProxyRequest) (ResponseUnit, error) {
+	fmt.Println("[Info]HandlerCreateUnit init")
+	fmt.Println("[Info]Event: ", event.Body)
 	var buf bytes.Buffer
-
-	service.CreateUnit(event)
-
-	body, err := json.Marshal(map[string]interface{}{
-		"message": "Lambda in GO for create units",
-	})
+	err := service.CreateUnit(event)
 
 	if err != nil {
-		fmt.Println("Ingresa IF error")
+		fmt.Println("[Error]err: ", err.Error())
 		resp := ResponseUnit{
 			StatusCode: 404,
 			Body: fmt.Sprintf("%+v", types.ErrorResponse{
 				ErrorCode:    001,
-				ErrorMessage: "Check logs",
+				ErrorMessage: err.Error(),
 				Timestamp:    "20/07/2023",
 			}),
 		}
 		return resp, err
 	}
+
+	body, err := json.Marshal(map[string]interface{}{
+		"message": "Unit created successful",
+	})
 	json.HTMLEscape(&buf, body)
-	fmt.Println("Pasa IF ERROR")
 	resp := ResponseUnit{
 		StatusCode:      200,
 		IsBase64Encoded: false,
@@ -51,7 +50,6 @@ func HandlerCreateUnit(ctx context.Context, event events.APIGatewayProxyRequest)
 			"X-MyCompany-Func-Reply": "user-handler",
 		},
 	}
-	fmt.Println("Antes del return")
 	return resp, nil
 }
 

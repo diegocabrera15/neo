@@ -12,10 +12,10 @@ build: gomodgen
 	$(compile) bin/readUnitHandler handler/ReadUnitHandler.go
 
 clean:
+	clear
 	rm -rf ./bin ./vendor go.sum
 
 deploy: clean build
-	#sls deploy --verbose
 	sls deploy --aws-profile fer
 
 gomodgen:
