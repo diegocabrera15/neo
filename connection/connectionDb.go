@@ -10,15 +10,17 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/go/neo/types"
+	"os"
 )
 
-func createDynamoSession() *dynamodb.DynamoDB {
+var TableName = os.Getenv("UNIT_DYNAMODB")
+
+func CreateDynamoSession() *dynamodb.DynamoDB {
 	sess := session.Must(session.NewSessionWithOptions(
 		session.Options{
 			SharedConfigState: session.SharedConfigEnable,
 		},
 	))
-
 	return dynamodb.New(sess)
 }
 

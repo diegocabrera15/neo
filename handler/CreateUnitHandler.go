@@ -22,7 +22,7 @@ type ResponseUnit events.APIGatewayProxyResponse
 func HandlerCreateUnit(ctx context.Context, event events.APIGatewayProxyRequest) (ResponseUnit, error) {
 	var buf bytes.Buffer
 
-	service.CreateUnit("Fernando", ctx, event)
+	service.CreateUnit(event)
 
 	body, err := json.Marshal(map[string]interface{}{
 		"message": "Lambda in GO for create units",
@@ -32,7 +32,6 @@ func HandlerCreateUnit(ctx context.Context, event events.APIGatewayProxyRequest)
 		fmt.Println("Ingresa IF error")
 		resp := ResponseUnit{
 			StatusCode: 404,
-			//Body:       err.Error(),
 			Body: fmt.Sprintf("%+v", types.ErrorResponse{
 				ErrorCode:    001,
 				ErrorMessage: "Check logs",
