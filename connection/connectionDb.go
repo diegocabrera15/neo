@@ -9,39 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	// "github.com/aws/aws-sdk-go/service/dynamodb/expression"
 	"github.com/go/neo/types"
-	"os"
-	// "strconv"
 )
-
-var TableName = os.Getenv("UNIT_DYNAMODB")
-
-func SaveUnit(unit types.UnitDynamodb) error {
-	unitMap, marshalErr := dynamodbattribute.MarshalMap(unit)
-
-	fmt.Println("NOMBRE TABLA2", os.Getenv("UNIT_DYNAMODB"))
-	if marshalErr != nil {
-		fmt.Println("Failed to marshal to dynamo map")
-		return marshalErr
-	}
-
-	dynamoSession := createDynamoSession()
-
-	input := &dynamodb.PutItemInput{
-		Item:      unitMap,
-		TableName: aws.String(TableName),
-	}
-
-	_, writeErr := dynamoSession.PutItem(input)
-
-	if writeErr != nil {
-		fmt.Println("Failed to write to dynamo")
-		return writeErr
-	}
-
-	return nil
-}
 
 func createDynamoSession() *dynamodb.DynamoDB {
 	sess := session.Must(session.NewSessionWithOptions(

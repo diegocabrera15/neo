@@ -18,10 +18,12 @@ provider:
   iamRoleStatements:
     - Effect: "Allow"
       Action:
-        - "dynamodb:GetItem"
-        - "dynamodb:PutItem"
-        - "dynamodb:UpdateItem"
-        - "dynamodb:DeleteItem"
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
       Resource:
 #        - {
 #          "Fn::Join":
@@ -39,12 +41,6 @@ provider:
 #            ],
 #        }
 #        - "*"
-        - "arn:aws:dynamodb:${self:provider.environment.REGION}:*:table/${self:provider.environment.UNIT_DYNAMODB}"
-    - Effect: "Allow"
-      Action:
-        - dynamodb:Query
-        - dynamodb:Scan
-      Resource:
         - "arn:aws:dynamodb:${self:provider.environment.REGION}:*:table/${self:provider.environment.UNIT_DYNAMODB}"
 
   logRetentionInDays: 7
