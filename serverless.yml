@@ -1,4 +1,7 @@
-service: ms-manage-user
+#service: ms-manage-recipe
+service: ms-manage-recipe
+configValidationMode: warn
+variablesResolutionMode: 20210326
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
@@ -7,12 +10,22 @@ service: ms-manage-user
 # Check out our docs for more details
 frameworkVersion: '3'
 
+plugins:
+#  - serverless-tag-api-gateway
+#  - serverless-domain-manager
+#  - serverless-prune-plugin
+#  - serverless-plugin-canary-deployments
+#  - serverless-plugin-tracing
+#  - serverless-dynamodb-global-table-v2-plugin
+
 provider:
   name: aws
   runtime: go1.x
-  stage: dev
+  stage: qa
+  timeout: 29
   environment:
     REGION: us-east-1
+#    MS_NAME: ${self:custom.service.name}
     USER_TABLE: user
     UNIT_DYNAMODB: ${self:resources.Resources.unit.Properties.TableName}
   iamRoleStatements:
@@ -47,7 +60,6 @@ provider:
 
 custom:
   version: v1
-
 package:
   patterns:
     - '!./**'
